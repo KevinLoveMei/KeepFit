@@ -1,0 +1,1 @@
+<view class="_div"><my-header vue-id="704e9d00-1" bind:__l="__l"></my-header><my-data-three-form vue-id="704e9d00-2" bind:__l="__l"></my-data-three-form><mylist vue-id="704e9d00-3" bind:__l="__l"></mylist></view>
