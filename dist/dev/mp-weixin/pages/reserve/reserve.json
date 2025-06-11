@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "预约",
+  "usingComponents": {
+    "reserve-header": "/pages/reserve/reserveHeader",
+    "reserve-list": "/pages/reserve/reserveList"
+  }
+}

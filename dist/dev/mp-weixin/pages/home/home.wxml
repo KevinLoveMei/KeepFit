@@ -1,0 +1,1 @@
+<view class="_div"><home-header vue-id="1da55560-1" bind:__l="__l"></home-header><home-filter vue-id="1da55560-2" bind:__l="__l"></home-filter><home-video vue-id="1da55560-3" bind:__l="__l"></home-video></view>
