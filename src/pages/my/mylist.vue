@@ -60,15 +60,15 @@ export default {
   },
   methods: {
     handleClick(type) {
-      switch (type) {
-        case "logout":
-          // 处理退出登录
-          this.$emit("logout");
-          break;
-        default:
-          // 处理其他页面跳转
-          console.log("navigate to:", type);
+      const item = this.listItems.find(item => item.type === type);
+      console.log('点击的项目:', item.title);
+      
+      if (type === 'logout') {
+        uni.reLaunch({
+          url: "/pages/login/login",
+        });
       }
+      // 可以根据不同的type添加其他处理逻辑
     },
   },
 };
@@ -77,25 +77,35 @@ export default {
 <style scoped>
 .my-list {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
+  padding: 0px 0 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .list-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  border-bottom: 1px solid #f5f5f5;
+  padding: 16px 24px;
+  margin: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.list-item:hover {
+  background-color: #f9f9f9;
+  transform: translateX(4px);
 }
 
 .list-item:last-child {
   border-bottom: none;
+  margin-bottom: 0;
 }
 
 .item-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .item-icon {
@@ -104,17 +114,24 @@ export default {
 }
 
 .item-title {
-  font-size: 16px;
+  font-size: 15px;
   color: #333;
+  font-weight: 500;
 }
 
 .arrow-icon {
   width: 16px;
   height: 16px;
-  opacity: 0.6;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.list-item:hover .arrow-icon {
+  opacity: 0.8;
 }
 
 .logout {
+  margin-top: 8px;
   border-radius: 8px;
   color: #ff4d4f;
 }
@@ -122,4 +139,9 @@ export default {
 .logout .item-title {
   color: #ff4d4f;
 }
+
+.logout:hover {
+  background-color: #fff1f0;
+}
+
 </style>
