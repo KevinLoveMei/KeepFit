@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "首页",
-  "usingComponents": {
-    "home-header": "/pages/home/homeHeader",
-    "home-filter": "/pages/home/homeFilter",
-    "home-video": "/pages/home/homeVideo"
-  }
-}
