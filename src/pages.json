@@ -25,6 +25,12 @@
 			}
 		},
 		{
+			"path": "pages/reserveTime/reserveTime",
+			"style": {
+				"navigationBarTitleText": "预约时间"
+			}
+		},
+		{
 			"path": "pages/my/my",
 			"style": {
 				"navigationBarTitleText": "我的"

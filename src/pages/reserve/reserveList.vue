@@ -7,7 +7,7 @@
       <text class="sort-title">教练列表</text>
       <view class="sort-button" @click="toggleSort">
         <text>{{currentSort.text}}</text>
-        <image src="../../static/排序.png" class="sort-icon" :class="{'sort-icon-rotate': isSort}"></image>
+        <image src="../../static/下箭头.png" class="sort-icon" :class="{'sort-icon-rotate': isSort}"></image>
       </view>
     </view>
 
@@ -24,7 +24,10 @@
     </view>
 
     <view class="coach-container">
-      <view class="coach-item" v-for="(item, index) in coachList" :key="index">
+      <view class="coach-item" 
+        v-for="(item, index) in coachList" 
+        :key="index"
+        @click="goToReserveTime(item)">
         <image :src="item.image" class="coach-image"></image>
         <view class="coach-info">
           <view class="coach-header">
@@ -55,21 +58,21 @@ export default {
           description: '专业健身教练，5年教学经验，擅长减脂塑形、增肌等课程'
         },
         {
-          image: '../../static/视频1.png',
+          image: '../../static/视频2.png',
           name: '李教练',
           level: '三星教练',
           tags: ['私教', '体能训练', '康复训练'],
           description: '资深私人教练，擅长体能训练和损伤康复指导'
         },
         {
-          image: '../../static/视频1.png',
+          image: '../../static/视频3.png',
           name: '张教练',
           level: '三星教练',
           tags: ['私教', '体能训练', '康复训练'],
           description: '资深私人教练，擅长体能训练和损伤康复指导'
         },
         {
-          image: '../../static/视频1.png',
+          image: '../../static/视频4.png',
           name: '陈教练',
           level: '三星教练',
           tags: ['私教', '体能训练', '康复训练'],
@@ -99,6 +102,11 @@ export default {
       this.currentSort = item;
       this.handleMaskClick();
       // 这里可以添加排序逻辑
+    },
+    goToReserveTime(coach) {
+      uni.navigateTo({
+        url: `/pages/reserveTime/reserveTime?coach=${encodeURIComponent(JSON.stringify(coach))}`
+      })
     }
   }
 }
