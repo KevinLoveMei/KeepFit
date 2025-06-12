@@ -151,6 +151,14 @@ export default {
         return;
       }
 
+      if (this.registerForm.password == "" || this.registerForm.confirmPassword == "") {
+        uni.showToast({
+          title: "密码不能为空",
+          icon: "none",
+        });
+        return;
+      }
+
       if (this.registerForm.password !== this.registerForm.confirmPassword) {
         uni.showToast({
           title: "两次密码不一致",
@@ -173,27 +181,29 @@ export default {
           "content-type": "application/json",
         },
         success: (res) => {
-          console.log(res.data);
-          // 添加注册成功的提示
-          uni.showToast({
-            title: '注册成功',
-            icon: 'success',
-            duration: 1500,
-            success: () => {
-              // 延迟跳转，等待提示显示完成
-              setTimeout(() => {
-                uni.redirectTo({
-                  url: '/pages/login/login'
-                });
-              }, 1500);
-            }
-          });
+          if (res.statusCode === 201) {
+            console.log(res.sta);
+            // 添加注册成功的提示
+            uni.showToast({
+              title: "注册成功",
+              icon: "success",
+              duration: 1500,
+              success: () => {
+                // 延迟跳转，等待提示显示完成
+                setTimeout(() => {
+                  uni.redirectTo({
+                    url: "/pages/login/login",
+                  });
+                }, 1500);
+              },
+            });
+          }
         },
         fail: (err) => {
           console.error(err);
           uni.showToast({
-            title: '注册失败，请重试',
-            icon: 'none'
+            title: "注册失败，请重试",
+            icon: "none",
           });
         },
       });
