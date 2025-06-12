@@ -80,7 +80,8 @@
     <div class="agreement-text">
       <checkbox
         class="agreement-checkbox"
-        value="agreement"
+        :checked="isAgreed"
+        @click="toggleAgreement"
         color="#6252dd"
       />
       注册即代表同意 <span class="link">用户协议</span> 和 <span class="link">隐私政策</span>
@@ -128,10 +129,28 @@ export default {
       },
       showPassword: false,
       showConfirmPassword: false,
+      isAgreed: false,
     };
   },
   methods: {
     handleRegister() {
+      if (!this.isAgreed) {
+        uni.showToast({
+          title: "请阅读并同意用户协议和隐私政策",
+          icon: "none",
+          duration: 2000,
+        });
+        return;
+      }
+
+      if (this.registerForm.username == "") {
+        uni.showToast({
+          title: "用户名不能为空",
+          icon: "none",
+        });
+        return;
+      }
+
       if (this.registerForm.password !== this.registerForm.confirmPassword) {
         uni.showToast({
           title: "两次密码不一致",
@@ -139,13 +158,54 @@ export default {
         });
         return;
       }
-      console.log("注册", this.registerForm);
+
+      const requestData = {
+        userName: this.registerForm.username,
+        passWord: this.registerForm.password,
+        confirmPassword: this.registerForm.confirmPassword,
+      };
+
+      uni.request({
+        url: "http://127.0.0.1:5000/api/auth/register",
+        method: "POST",
+        data: requestData,
+        header: {
+          "content-type": "application/json",
+        },
+        success: (res) => {
+          console.log(res.data);
+          // 添加注册成功的提示
+          uni.showToast({
+            title: '注册成功',
+            icon: 'success',
+            duration: 1500,
+            success: () => {
+              // 延迟跳转，等待提示显示完成
+              setTimeout(() => {
+                uni.redirectTo({
+                  url: '/pages/login/login'
+                });
+              }, 1500);
+            }
+          });
+        },
+        fail: (err) => {
+          console.error(err);
+          uni.showToast({
+            title: '注册失败，请重试',
+            icon: 'none'
+          });
+        },
+      });
     },
     togglePwdVisible() {
       this.showPassword = !this.showPassword;
     },
     toggleConfirmPwdVisible() {
       this.showConfirmPassword = !this.showConfirmPassword;
+    },
+    toggleAgreement() {
+      this.isAgreed = !this.isAgreed;
     },
     goToLogin() {
       uni.navigateBack();

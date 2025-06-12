@@ -58,7 +58,8 @@
     <div class="agreement-text">
       <checkbox
         class="agreement-checkbox"
-        value="agreement"
+        :checked="isAgreed"
+        @click="toggleAgreement"
         color="#6252dd"
       />
       登录即代表同意 <span class="link">用户协议</span> 和 <span class="link">隐私政策</span>
@@ -111,13 +112,79 @@ export default {
         password: "",
       },
       showPassword: false,
+      isAgreed: false,
     };
   },
   methods: {
     handleLogin() {
-      console.log("登录", this.loginForm);
-      uni.switchTab({
-        url: "/pages/home/home",
+      if (!this.isAgreed) {
+        uni.showToast({
+          title: "请阅读并同意用户协议和隐私政策",
+          icon: "none",
+          duration: 2000,
+        });
+        return;
+      }
+
+      if (this.loginForm.username.trim() === "") {
+        uni.showToast({
+          title: "用户名不能为空",
+          icon: "none",
+        });
+        return;
+      }
+
+      if (this.loginForm.password.trim() === "") {
+        uni.showToast({
+          title: "密码不能为空",
+          icon: "none",
+        });
+        return;
+      }
+
+      const requestData = {
+        userName: this.loginForm.username,
+        passWord: this.loginForm.password,
+      };
+
+      uni.request({
+        url: "http://127.0.0.1:5000/api/auth/login", // 你的接口地址
+        method: "POST",
+        data: requestData,
+        header: {
+          'content-type': 'application/json',
+        },
+        success: (res) => {
+          if (res.statusCode === 200) {
+            // 添加登录成功的提示
+            uni.showToast({
+              title: "登录成功",
+              icon: "success",
+              duration: 1500,
+              success: () => {
+                // 延迟跳转，等待提示显示完成
+                setTimeout(() => {
+                  uni.switchTab({
+                    url: "/pages/home/home",
+                  });
+                }, 1500);
+              },
+            });
+          } else {
+            // 输出错误信息
+            uni.showToast({
+              title: res.data.message || "登录失败，请重试",
+              icon: "none",
+            });
+          }
+        },
+        fail: (err) => {
+          console.error(err);
+          uni.showToast({
+            title: "登录失败，请重试",
+            icon: "none",
+          });
+        },
       });
     },
     togglePwdVisible() {
@@ -125,6 +192,9 @@ export default {
     },
     forgetPassword() {
       console.log("忘记密码");
+    },
+    toggleAgreement() {
+      this.isAgreed = !this.isAgreed;
     },
     goToSignup() {
       console.log("去注册");
@@ -284,7 +354,7 @@ export default {
 .agreement-checkbox {
   transform: scale(0.8);
   margin-right: 5px;
-  accent-color: #6252dd; 
+  accent-color: #6252dd;
 }
 
 .agreement-text .link {
