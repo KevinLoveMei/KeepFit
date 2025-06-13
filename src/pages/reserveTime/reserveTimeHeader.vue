@@ -11,7 +11,12 @@
       <div class="basic-info">
         <div class="name-level">
           <h2 class="name">{{ coachInfo.name }}</h2>
-          <div class="level-tag">{{ coachInfo.level }}</div>
+          <div
+            class="level-tag"
+            :class="'level-' + getStarLevel(coachInfo.level)"
+          >
+            {{ coachInfo.level }}
+          </div>
         </div>
         <div class="department">
           <span
@@ -27,7 +32,13 @@
         </div>
       </div>
       <div class="action-button">
-        <button class="follow-btn">+ 关注</button>
+        <button
+          class="follow-btn"
+          :class="{ 'followed': isFollowing }"
+          @click="toggleFollow"
+        >
+          {{ isFollowing ? '已关注' : '+ 关注' }}
+        </button>
       </div>
     </div>
 
@@ -45,17 +56,20 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: "coachProfile",
   props: {
     coachData: {
       type: Object,
-      default: () => ({})
-    }
+      default: () => ({}),
+    },
   },
   data() {
     return {
       coachInfo: {
+        id: "",
         avatar: "",
         name: "",
         level: "",
@@ -63,8 +77,43 @@ export default {
         description: "",
         followers: 0,
         reviews: 0,
-      }
+      },
+      isFollowing: false, // 新增关注状态
     };
+  },
+  methods: {
+    // 添加星级转换方法
+    getStarLevel(starText) {
+      const starMap = {
+        一星教练: 1,
+        二星教练: 2,
+        三星教练: 3,
+      };
+      return starMap[starText] || 0;
+    },
+
+    // 切换关注状态
+    async toggleFollow() {
+      const url = `http://127.0.0.1:5000/api/coaches/${this.coachInfo.id}/${
+        this.isFollowing ? "decrease_publicity" : "increase_publicity"
+      }`;
+
+      wx.request({
+        url: url,
+        method: "PATCH",
+        success: () => {
+          this.coachInfo.followers += this.isFollowing ? -1 : 1;
+          this.isFollowing = !this.isFollowing;
+        },
+        fail: (error) => {
+          console.error("操作失败:", error);
+          wx.showToast({
+            title: "操作失败",
+            icon: "none",
+          });
+        },
+      });
+    },
   },
   watch: {
     coachData: {
@@ -72,17 +121,20 @@ export default {
         if (newVal) {
           this.coachInfo = {
             ...this.coachInfo,
+            id: newVal.id || "",
             avatar: newVal.image,
             name: newVal.name,
             level: newVal.level,
             tags: newVal.tags || [],
             description: newVal.description || "",
+            followers: newVal.popularity || 0,
+            reviews: newVal.reviews || 0,
           };
         }
       },
-      immediate: true
-    }
-  }
+      immediate: true,
+    },
+  },
 };
 </script>
 
@@ -128,10 +180,23 @@ export default {
 
 .level-tag {
   font-size: 12px;
-  color: #007AFF;
-  background-color: #e6f2ff;
   padding: 2px 8px;
   border-radius: 4px;
+}
+
+.level-1 {
+  color: #007aff;
+  background: #e6f2ff;
+}
+
+.level-2 {
+  color: #ff9500;
+  background: #fff7e6;
+}
+
+.level-3 {
+  color: #ff4d4f;
+  background: #fff1f0;
 }
 
 .department {
@@ -154,10 +219,18 @@ export default {
   border-radius: 20px;
   font-size: 13px;
   font-weight: normal;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.follow-btn.followed {
+  background-color: #f5f5f5;
+  color: #666;
+  border-color: #ddd;
 }
 
 .action-button {
-  margin-top: 5px; /* 添加上边距，使按钮位置更协调 */
+  margin-top: 5px;
 }
 
 .function-tabs {

@@ -9,17 +9,17 @@
       >
         <view class="video-cover">
           <image
-            :src="item.coverUrl"
+            :src="item.pictureUrl"
             mode="aspectFill"
             class="cover-image"
           />
-          <view class="video-duration">{{ item.duration }}</view>
+          <view class="video-duration">{{ item.hard }}</view>
         </view>
         <view class="video-info">
           <text class="video-title">{{ item.title }}</text>
           <view class="video-stats">
-            <text class="video-views">{{ item.views }}次观看</text>
-            <text class="video-author">{{ item.author }}</text>
+            <text class="video-views">{{ item.seeCount }}次观看</text>
+            <text class="video-author">{{ item.type }}</text>
           </view>
         </view>
       </view>
@@ -29,66 +29,21 @@
 
 <script>
 export default {
-  data() {
-    return {
-      videoList: [
-        {
-          id: 1,
-          title: "10分钟全身燃脂运动",
-          coverUrl: "/static/视频1.png",
-          duration: "10:00",
-          views: "2.5万",
-          author: "健身教练小明",
-        },
-        {
-          id: 2,
-          title: "10分钟全身燃脂运动",
-          coverUrl: "/static/视频2.png",
-          duration: "10:00",
-          views: "2.5万",
-          author: "健身教练小明",
-        },
-        {
-          id: 3,
-          title: "10分钟全身燃脂运动",
-          coverUrl: "/static/视频3.png",
-          duration: "10:00",
-          views: "2.5万",
-          author: "健身教练小明",
-        },
-        {
-          id: 4,
-          title: "10分钟全身燃脂运动",
-          coverUrl: "/static/视频4.png",
-          duration: "10:00",
-          views: "2.5万",
-          author: "健身教练小明",
-        },
-        {
-          id: 5,
-          title: "10分钟全身燃脂运动",
-          coverUrl: "/static/视频5.png",
-          duration: "10:00",
-          views: "2.5万",
-          author: "健身教练小明",
-        },
-        {
-          id: 6,
-          title: "10分钟全身燃脂运动",
-          coverUrl: "/static/视频6.png",
-          duration: "10:00",
-          views: "2.5万",
-          author: "健身教练小明",
-        },
-      ],
-    };
+  props: {
+    videoList: {
+      type: Array,
+      default: () => []
+    }
   },
   methods: {
     handleVideoClick(video) {
-      // 处理视频点击事件
       console.log("点击视频:", video.title);
-    },
-  },
+      // 跳转到视频详情页
+      // uni.navigateTo({
+      //   url: `/pages/videoDetail?id=${video.videoid}`
+      // });
+    }
+  }
 };
 </script>
 
