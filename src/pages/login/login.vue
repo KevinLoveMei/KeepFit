@@ -152,7 +152,7 @@ export default {
         method: "POST",
         data: requestData,
         header: {
-          'content-type': 'application/json',
+          "content-type": "application/json",
         },
         success: (res) => {
           if (res.statusCode === 200) {
@@ -203,7 +203,9 @@ export default {
       });
     },
     loginAsGuest() {
-      console.log("访客登录");
+      uni.switchTab({
+        url: "/pages/home/home",
+      });
     },
   },
 };

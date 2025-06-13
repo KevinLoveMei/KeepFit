@@ -1,20 +1,34 @@
 <template>
   <div class="coach-list">
 
-    <div class="mask" v-show="showMask" @click="handleMaskClick"></div>
-    
+    <div
+      class="mask"
+      v-show="showMask"
+      @click="handleMaskClick"
+    ></div>
+
     <view class="sort-header">
       <text class="sort-title">教练列表</text>
-      <view class="sort-button" @click="toggleSort">
+      <view
+        class="sort-button"
+        @click="toggleSort"
+      >
         <text>{{currentSort.text}}</text>
-        <image src="../../static/下箭头.png" class="sort-icon" :class="{'sort-icon-rotate': isSort}"></image>
+        <image
+          src="../../static/下箭头.png"
+          class="sort-icon"
+          :class="{'sort-icon-rotate': isSort}"
+        ></image>
       </view>
     </view>
 
-    <view class="sort-dropdown" v-show="showMask">
-      <view 
-        class="sort-item" 
-        v-for="(item, index) in sortOptions" 
+    <view
+      class="sort-dropdown"
+      v-show="showMask"
+    >
+      <view
+        class="sort-item"
+        v-for="(item, index) in sortOptions"
         :key="index"
         :class="{'sort-item-active': currentSort.value === item.value}"
         @click="selectSort(item)"
@@ -24,18 +38,32 @@
     </view>
 
     <view class="coach-container">
-      <view class="coach-item" 
-        v-for="(item, index) in coachList" 
+      <view
+        class="coach-item"
+        v-for="(item, index) in coachList"
         :key="index"
-        @click="goToReserveTime(item)">
-        <image :src="item.image" class="coach-image"></image>
+        @click="goToReserveTime(item)"
+      >
+        <image
+          :src="item.image"
+          class="coach-image"
+        ></image>
         <view class="coach-info">
           <view class="coach-header">
             <text class="coach-name">{{item.name}}</text>
-            <text class="coach-level">{{item.level}}</text>
+            <text
+              class="coach-level"
+              :class="'level-' + getStarLevel(item.level)"
+            >
+              {{item.level}}
+            </text>
           </view>
           <view class="coach-tags">
-            <text class="tag" v-for="(tag, idx) in item.tags" :key="idx">{{tag}}</text>
+            <text
+              class="tag"
+              v-for="(tag, idx) in item.tags"
+              :key="idx"
+            >{{tag}}</text>
           </view>
           <text class="coach-desc">{{item.description}}</text>
         </view>
@@ -46,70 +74,120 @@
 
 <script>
 export default {
-  name: 'ReserveList',
+  name: "ReserveList",
   data() {
     return {
-      coachList: [
-        {
-          image: '../../static/视频1.png',
-          name: '王教练',
-          level: '三星教练',
-          tags: ['健身指导', '瑜伽', '力量训练'],
-          description: '专业健身教练，5年教学经验，擅长减脂塑形、增肌等课程'
-        },
-        {
-          image: '../../static/视频2.png',
-          name: '李教练',
-          level: '三星教练',
-          tags: ['私教', '体能训练', '康复训练'],
-          description: '资深私人教练，擅长体能训练和损伤康复指导'
-        },
-        {
-          image: '../../static/视频3.png',
-          name: '张教练',
-          level: '三星教练',
-          tags: ['私教', '体能训练', '康复训练'],
-          description: '资深私人教练，擅长体能训练和损伤康复指导'
-        },
-        {
-          image: '../../static/视频4.png',
-          name: '陈教练',
-          level: '三星教练',
-          tags: ['私教', '体能训练', '康复训练'],
-          description: '资深私人教练，擅长体能训练和损伤康复指导'
-        }
-      ],
+      coachList: [],
       showMask: false,
       isSort: false,
       sortOptions: [
-        { text: '默认排序', value: 'default' },
-        { text: '按照星级排序', value: 'star' },
-        { text: '按照人气排序', value: 'popular' }
+        { text: "默认排序", value: "default" },
+        { text: "按照星级排序", value: "star" },
+        { text: "按照关注数量排序", value: "popular" },
       ],
-      currentSort: { text: '默认排序', value: 'default' }
-    }
+      currentSort: { text: "默认排序", value: "default" },
+    };
+  },
+  created() {
+    this.fetchCoachList();
   },
   methods: {
+    async fetchCoachList() {
+      try {
+        uni.showLoading({ title: "加载中..." });
+
+        // 兼容微信小程序的请求方式
+        const res = await new Promise((resolve, reject) => {
+          uni.request({
+            url: "http://127.0.0.1:5000/api/coaches",
+            method: "GET",
+            success: (res) => {
+              if (res.statusCode === 200) {
+                resolve(res);
+              } else {
+                reject(new Error(`HTTP状态码: ${res.statusCode}`));
+              }
+            },
+            fail: (err) => reject(err),
+          });
+        });
+
+        // 处理数据
+        this.coachList = res.data.map((item) => ({
+          id: item.cid,
+          image: item.coachPictureUrl,
+          name: item.coachName,
+          level: item.coachStar,
+          tags: item.coachTag.split(","),
+          description: item.coachBrief,
+          starLevel: this.getStarLevel(item.coachStar),
+          popularity: item.publicity,
+          reviews: item.comment
+        }));
+
+        // 初始排序
+        this.sortCoaches();
+      } catch (error) {
+        console.error("获取教练列表失败:", error);
+        uni.showToast({
+          title: error.message || "加载失败",
+          icon: "none",
+          duration: 2000,
+        });
+      } finally {
+        uni.hideLoading();
+      }
+    },
+
+    // 将"三星教练"等转换为数字等级
+    getStarLevel(starText) {
+      const starMap = {
+        一星教练: 1,
+        二星教练: 2,
+        三星教练: 3,
+      };
+      return starMap[starText] || 0;
+    },
+
     toggleSort() {
       this.showMask = !this.showMask;
       this.isSort = !this.isSort;
     },
+
     handleMaskClick() {
       this.showMask = false;
       this.isSort = false;
     },
+
     selectSort(item) {
       this.currentSort = item;
       this.handleMaskClick();
-      // 这里可以添加排序逻辑
+      this.sortCoaches();
     },
+
+    // 排序逻辑
+    sortCoaches() {
+      if (this.currentSort.value === "default") {
+        // 默认排序（按原始顺序）
+        this.coachList.sort((a, b) => a.id - b.id);
+      } else if (this.currentSort.value === "star") {
+        // 按星级排序（降序）
+        this.coachList.sort((a, b) => b.starLevel - a.starLevel);
+      } else if (this.currentSort.value === "popular") {
+        // 按关注数量排序（降序）
+        this.coachList.sort((a, b) => b.popularity - a.popularity);
+      }
+    },
+
     goToReserveTime(coach) {
       uni.navigateTo({
-        url: `/pages/reserveTime/reserveTime?coach=${encodeURIComponent(JSON.stringify(coach))}`
-      })
-    }
-  }
-}
+        url: `/pages/reserveTime/reserveTime?coach=${encodeURIComponent(
+          JSON.stringify(coach)
+        )}`,
+      });
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -195,7 +273,7 @@ export default {
 }
 
 .sort-item-active {
-  color: #007AFF;
+  color: #007aff;
   background-color: #f5f5f5;
 }
 
@@ -242,12 +320,27 @@ export default {
   margin-right: 10px;
 }
 
+/* 教练星级标签样式 */
 .coach-level {
   font-size: 12px;
-  color: #007AFF;
   padding: 2px 6px;
-  background: #e6f2ff;
   border-radius: 4px;
+  margin-right: 10px;
+}
+
+.level-1 {
+  color: #007aff;
+  background: #e6f2ff;
+}
+
+.level-2 {
+  color: #ff9500;
+  background: #fff7e6;
+}
+
+.level-3 {
+  color: #ff4d4f;
+  background: #fff1f0;
 }
 
 .coach-tags {

@@ -1,7 +1,7 @@
 <template>
   <div>
     <reserveTimeHeader :coachData="coachData"></reserveTimeHeader>
-    <reserveTimeMain></reserveTimeMain>
+    <reserveTimeMain :coachData="coachData"></reserveTimeMain>
   </div>
 </template>
 

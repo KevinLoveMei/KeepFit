@@ -3,45 +3,42 @@
     <div class="coach-info">
       <h2 class="title">排班信息（选择排班时间即可预约教练）</h2>
       <div class="coach-name">
-        浙江猛男健身房
-        <span class="tag">可预约</span>
+        {{ Address }}
+        <span class="tag">{{ item.reserved ? "预约成功" : item.isPast ? "不可预约" : "可预约" }}</span>
       </div>
       <div class="department">私教区</div>
     </div>
 
     <div class="time-list">
       <transition-group name="list" class="list-container">
-        <div
-          class="time-item"
-          v-for="(item, index) in showList"
-          :key="item.date"
-        >
+        <div class="time-item" v-for="(item, index) in showList" :key="index">
           <div class="left-content">
             <div class="date-info">
-              <span class="date">{{item.date}}</span>
-              <span class="day">{{item.day}}</span>
-              <span class="period">{{item.period}}</span>
+              <span class="date">{{ item.date }}</span>
+              <span class="day">{{ item.day }}</span>
+              <span class="period">{{ item.period }}</span>
             </div>
             <div class="appointment-info">
               <div class="type">预约教练</div>
-              <div class="price">{{item.price}}元</div>
+              <div class="price">{{ item.price }}元</div>
             </div>
           </div>
           <button
             class="reserve-btn"
-            :class="{'success': item.reserved, 'cancel-hover': item.reserved}"
+            :class="{ 'success': item.reserved, 'disabled': item.isPast }"
             @click="handleReserve(item)"
+            :disabled="item.isPast"
           >
-            <span class="reserve-text">{{item.reserved ? '预约成功' : '可预约'}}</span>
+            <span class="reserve-text">{{ item.reserved ? "预约成功" : item.isPast ? "不可预约" : "可预约" }}</span>
           </button>
         </div>
       </transition-group>
       <div class="time-item collapse-item">
         <div class="collapse-btn" @click="toggleList">
-          {{isCollapsed ? '展开排班' : '收起排班'}}
+          {{ isCollapsed ? "展开排班" : "收起排班" }}
           <img
             src="../../static/上箭头.png"
-            :class="['arrow-icon', {'rotate-icon': isCollapsed}]"
+            :class="['arrow-icon', { 'rotate-icon': isCollapsed }]"
             alt="arrow"
           />
         </div>
@@ -53,30 +50,126 @@
 <script>
 export default {
   name: "ReserveTime",
+  props: {
+    coachData: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
   data() {
     return {
       isCollapsed: false,
-      timeList: [
-        { date: "06.12", day: "星期四", period: "上午", price: 100, reserved: false },
-        { date: "06.16", day: "星期一", period: "下午", price: 100, reserved: false },
-        { date: "06.19", day: "星期四", period: "上午", price: 100, reserved: false },
-        { date: "06.23", day: "星期一", period: "下午", price: 100, reserved: false }
-      ]
-    }
+      coachId: {
+        id: "",
+      },
+      timeList: [],
+      Address: "",
+    };
   },
   computed: {
     showList() {
       return this.isCollapsed ? this.timeList.slice(0, 2) : this.timeList;
-    }
+    },
   },
   methods: {
+    async fetchCoachSchedule(coachId) {
+      try {
+        // 使用微信小程序的请求API
+        const res = await new Promise((resolve, reject) => {
+          wx.request({
+            url: "http://127.0.0.1:5000/api/reserve/coach",
+            method: "POST",
+            data: { id: coachId },
+            header: {
+              "Content-Type": "application/json",
+            },
+            success: resolve,
+            fail: reject,
+          });
+        });
+
+        // 检查请求是否成功
+        if (res.statusCode !== 200) {
+          throw new Error("请求失败: " + res.statusCode);
+        }
+
+        // 设置健身房地址（取第一条数据的address）
+        if (res.data.data && res.data.data.length > 0) {
+          this.Address = res.data.data[0].address;
+        }
+
+        // 转换API数据格式
+        this.timeList = res.data.data.map((item) => {
+          const deadlineDate = new Date(item.deadline);
+          const formattedDate = `${(deadlineDate.getMonth() + 1)
+            .toString()
+            .padStart(2, "0")}.${deadlineDate
+            .getDate()
+            .toString()
+            .padStart(2, "0")}`;
+          const days = [
+            "星期日",
+            "星期一",
+            "星期二",
+            "星期三",
+            "星期四",
+            "星期五",
+            "星期六",
+          ];
+          const day = days[deadlineDate.getDay()];
+          const time = deadlineDate.toTimeString().substring(0, 8);
+
+          // 判断是否是过去的时间
+          const isPast = deadlineDate < new Date();
+
+          return {
+            id: item.id,
+            date: formattedDate,
+            day: day,
+            period: time,
+            price: item.price,
+            reserved: false,
+            address: item.address,
+            isPast: isPast, // 添加是否是过去时间的标志
+          };
+        });
+      } catch (error) {
+        console.error("获取教练排班失败:", error);
+        // 可以在这里添加用户提示，比如：
+        wx.showToast({
+          title: "获取排班信息失败",
+          icon: "none",
+        });
+      }
+    },
     handleReserve(item) {
+      if (item.isPast) {
+        wx.showToast({
+          title: "该时间已过期，无法预约",
+          icon: "none",
+        });
+        return;
+      }
       item.reserved = !item.reserved;
       console.log(item.reserved ? "预约成功:" : "取消预约:", item);
     },
     toggleList() {
       this.isCollapsed = !this.isCollapsed;
-    }
+    },
+  },
+  watch: {
+    coachData: {
+      handler(newVal) {
+        if (newVal && newVal.id) {
+          this.coachId = {
+            ...this.coachId,
+            id: newVal.id || "",
+          };
+          this.fetchCoachSchedule(newVal.id);
+        }
+      },
+      immediate: true,
+    },
   },
 };
 </script>
@@ -178,12 +271,17 @@ export default {
   background: #52c41a;
 }
 
+.reserve-btn.disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
 .reserve-btn.cancel-hover:hover {
   background: #ff4d4f;
 }
 
 .reserve-btn.cancel-hover:hover .reserve-text {
-  content: '取消预约';
+  content: "取消预约";
 }
 
 .reserve-text {
