@@ -156,13 +156,16 @@ export default {
         },
         success: (res) => {
           if (res.statusCode === 200) {
-            // 添加登录成功的提示
+            // 保存用户名和VIP状态到本地存储
+            uni.setStorageSync('username', this.loginForm.username);
+            // 注意这里将isVip=="1"转换为false(不是vip)，isVip=="0"转换为true(是vip)
+            uni.setStorageSync('isMember', res.data.isVip === "0");
+            
             uni.showToast({
               title: "登录成功",
               icon: "success",
               duration: 1500,
               success: () => {
-                // 延迟跳转，等待提示显示完成
                 setTimeout(() => {
                   uni.switchTab({
                     url: "/pages/home/home",
@@ -203,6 +206,10 @@ export default {
       });
     },
     loginAsGuest() {
+      // 设置访客信息
+      uni.setStorageSync('username', '用户名');
+      uni.setStorageSync('isMember', false);
+      
       uni.switchTab({
         url: "/pages/home/home",
       });

@@ -25,10 +25,15 @@ export default {
   data() {
     return {
       userInfo: {
-        username: '用户名',
-        isMember: true // true表示VIP会员，false表示普通会员
+        username: uni.getStorageSync('username') || '用户名',
+        isMember: uni.getStorageSync('isMember') || false
       }
     }
+  },
+  onShow() {
+    // 每次显示组件时更新用户信息
+    this.userInfo.username = uni.getStorageSync('username') || '用户名';
+    this.userInfo.isMember = uni.getStorageSync('isMember') || false;
   }
 }
 </script>
