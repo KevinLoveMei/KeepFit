@@ -56,7 +56,6 @@
 </template>
 
 <script>
-
 export default {
   name: "coachProfile",
   props: {
@@ -77,7 +76,7 @@ export default {
         followers: 0,
         reviews: 0,
       },
-      isFollowing: false, // 新增关注状态
+      isFollowing: false,
     };
   },
   methods: {
@@ -91,7 +90,13 @@ export default {
       return starMap[starText] || 0;
     },
 
-    // 切换关注状态
+    // 添加获取关注状态的方法
+    getFollowStatus() {
+      const followedCoaches = uni.getStorageSync('followedCoaches') || [];
+      this.isFollowing = followedCoaches.includes(this.coachInfo.id);
+    },
+
+    // 修改切换关注状态方法
     async toggleFollow() {
       const url = `http://127.0.0.1:5000/api/coaches/${this.coachInfo.id}/${
         this.isFollowing ? "decrease_publicity" : "increase_publicity"
@@ -103,6 +108,15 @@ export default {
         success: () => {
           this.coachInfo.followers += this.isFollowing ? -1 : 1;
           this.isFollowing = !this.isFollowing;
+          
+          // 更新本地存储中的关注状态
+          let followedCoaches = uni.getStorageSync('followedCoaches') || [];
+          if (this.isFollowing) {
+            followedCoaches.push(this.coachInfo.id);
+          } else {
+            followedCoaches = followedCoaches.filter(id => id !== this.coachInfo.id);
+          }
+          uni.setStorageSync('followedCoaches', followedCoaches);
         },
         fail: (error) => {
           console.error("操作失败:", error);
@@ -129,10 +143,19 @@ export default {
             followers: newVal.popularity || 0,
             reviews: newVal.reviews || 0,
           };
+          // 在教练信息更新后获取关注状态
+          this.getFollowStatus();
         }
       },
       immediate: true,
     },
+  },
+  // 添加页面显示时的钩子
+  onShow() {
+    // 每次页面显示时重新获取关注状态
+    if (this.coachInfo.id) {
+      this.getFollowStatus();
+    }
   },
 };
 </script>

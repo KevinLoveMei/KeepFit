@@ -96,7 +96,6 @@ export default {
       try {
         uni.showLoading({ title: "加载中..." });
 
-        // 兼容微信小程序的请求方式
         const res = await new Promise((resolve, reject) => {
           uni.request({
             url: "http://127.0.0.1:5000/api/coaches",
