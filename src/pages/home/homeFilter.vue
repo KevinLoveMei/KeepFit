@@ -40,7 +40,7 @@
 export default {
   data() {
     return {
-      typeFilters: ['有氧操', '跳绳', '八段锦', 'HIIT', '舞蹈燃脂','帕梅拉','腰腹减脂塑形','瑜伽','跑步','增肌','冥想','瘦腿'],
+      typeFilters: ['有氧操', '跳绳', '八段锦', 'HIIT', '舞蹈','帕梅拉','腰腹减脂塑形','瑜伽','跑步','增肌','冥想','瘦腿'],
       levelFilters: ['K1零基础', 'K2初学', 'K3进阶', 'K4强化', 'K5挑战'],
       activeTypes: [], // 改为数组以支持多选
       activeLevel: ''

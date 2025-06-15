@@ -181,8 +181,7 @@ export default {
           "content-type": "application/json",
         },
         success: (res) => {
-          if (res.statusCode === 201) {
-            console.log(res.sta);
+          if (res.statusCode === 200) {
             // 添加注册成功的提示
             uni.showToast({
               title: "注册成功",
